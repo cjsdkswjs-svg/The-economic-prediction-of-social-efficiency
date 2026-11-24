@@ -1,0 +1,6 @@
+{
+  "name": "한빛정밀 CEO — 우리 공장의 선택",
+  "description": "가상 제조기업 한빛정밀의 대표가 되어 4턴 동안 AI 도입과 노동·안전·전문성의 균형을 선택하는 한국어 시뮬레이션 게임",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

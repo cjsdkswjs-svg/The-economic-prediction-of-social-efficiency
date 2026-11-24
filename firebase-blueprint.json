@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "Submission": {
+      "title": "Simulation Submission",
+      "description": "A single-run 7-turn simulation result submitted by a booth participant.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "description": "Participant student ID (학번).",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[0-9a-zA-Z가-힣_\\-\\s]{1,20}$"
+        },
+        "studentName": {
+          "type": "string",
+          "description": "Participant name (이름).",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[0-9a-zA-Z가-힣_\\-\\s]{1,20}$"
+        },
+        "role": {
+          "type": "string",
+          "description": "Selected simulation perspective.",
+          "enum": ["ceo", "worker"]
+        },
+        "corporateScore": {
+          "type": "number",
+          "description": "Calculated corporate efficiency score (0-100)."
+        },
+        "socialScore": {
+          "type": "number",
+          "description": "Calculated social efficiency score (0-100)."
+        },
+        "combinedEfficiency": {
+          "type": "number",
+          "description": "Geometric mean sqrt(corporateScore * socialScore) (0-100)."
+        },
+        "endingTitle": {
+          "type": "string",
+          "description": "Ending title achieved by the participant.",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Final 7 simulation indicator values (Pd, Pf, E, C, D, A, S), each 0-100."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of submission."
+        }
+      },
+      "required": [
+        "studentId",
+        "studentName",
+        "role",
+        "corporateScore",
+        "socialScore",
+        "combinedEfficiency",
+        "endingTitle",
+        "metrics",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/submissions/{submissionId}": {
+      "schema": {
+        "$ref": "#/entities/Submission"
+      },
+      "description": "Festival participant simulation runs. Public create-only with strict validation; read/delete restricted exclusively to verified admin."
+    }
+  }
+}

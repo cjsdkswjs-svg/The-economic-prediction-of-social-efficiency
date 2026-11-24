@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'cjsdkswjs@gmail.com';
+    }
+
+    function isBoundedScore(val) {
+      return val is number && val >= 0 && val <= 100;
+    }
+
+    function isValidMetricsMap(m) {
+      return m is map
+        && m.keys().hasAll(['Pd', 'Pf', 'E', 'C', 'D', 'A', 'S'])
+        && m.keys().hasOnly(['Pd', 'Pf', 'E', 'C', 'D', 'A', 'S'])
+        && isBoundedScore(m.Pd)
+        && isBoundedScore(m.Pf)
+        && isBoundedScore(m.E)
+        && isBoundedScore(m.C)
+        && isBoundedScore(m.D)
+        && isBoundedScore(m.A)
+        && isBoundedScore(m.S);
+    }
+
+    function isValidSubmission(data) {
+      return data.keys().hasAll([
+          'studentId',
+          'studentName',
+          'role',
+          'corporateScore',
+          'socialScore',
+          'combinedEfficiency',
+          'endingTitle',
+          'metrics',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'studentId',
+          'studentName',
+          'role',
+          'corporateScore',
+          'socialScore',
+          'combinedEfficiency',
+          'endingTitle',
+          'metrics',
+          'createdAt'
+        ])
+        && data.studentId is string
+        && data.studentId.size() >= 1
+        && data.studentId.size() <= 20
+        && data.studentId.matches('^[0-9a-zA-Z가-힣_\\-\\s]{1,20}$')
+        && data.studentName is string
+        && data.studentName.size() >= 1
+        && data.studentName.size() <= 20
+        && data.studentName.matches('^[0-9a-zA-Z가-힣_\\-\\s]{1,20}$')
+        && data.role in ['ceo', 'worker']
+        && isBoundedScore(data.corporateScore)
+        && isBoundedScore(data.socialScore)
+        && isBoundedScore(data.combinedEfficiency)
+        && data.endingTitle is string
+        && data.endingTitle.size() >= 1
+        && data.endingTitle.size() <= 60
+        && isValidMetricsMap(data.metrics)
+        && data.createdAt == request.time;
+    }
+
+    match /submissions/{submissionId} {
+      allow get: if isValidId(submissionId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(submissionId) && isValidSubmission(incoming());
+      allow update: if false;
+      allow delete: if isValidId(submissionId) && isAdmin();
+    }
+  }
+}
